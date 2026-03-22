@@ -42,8 +42,16 @@ PALETTE = {
 # 円グラフ用の色（4所属）
 PIE_COLORS = ['#2E86AB', '#3D9AA2', '#4AB39A', '#5BC48B']
 
-# 図のサイズを設定
-fig, ax = plt.subplots(figsize=(10, 8))
+# 出力サイズ 1920x1080 ピクセル
+OUTPUT_SIZE = (1920, 1080)
+DPI = 100
+FIGSIZE = (OUTPUT_SIZE[0] / DPI, OUTPUT_SIZE[1] / DPI)  # (19.2, 10.8)
+
+# 余白とフォントサイズの設定
+MARGIN = dict(left=0.15, right=0.85, top=0.85, bottom=0.15)
+FONT = dict(title=22, label=16, legend=14, tick=14, annot=14)
+
+fig, ax = plt.subplots(figsize=FIGSIZE)
 
 # 円グラフを作成
 colors = PIE_COLORS[:len(labels)]
@@ -55,21 +63,25 @@ wedges, texts, autotexts = ax.pie(
     counterclock=False,  # 時計回りに配置
     colors=colors,
     explode=[0.02] * len(labels),  # 各セクションを少し離す
-    shadow=False
+    shadow=False,
+    textprops=dict(fontsize=FONT['label'])
 )
+for t in autotexts:
+    t.set_fontsize(FONT['annot'])
 
-ax.set_title('所属別参加者数', fontsize=16, fontweight='bold')
+ax.set_title('所属別参加者数', fontsize=FONT['title'], fontweight='bold')
 
 # 凡例を追加（参加者数も表示）
 ax.legend(
     legend_labels,
     loc='center left',
     bbox_to_anchor=(1, 0.5),
-    fontsize=10
+    fontsize=FONT['legend']
 )
+ax.tick_params(axis='both', labelsize=FONT['tick'])
 
-plt.tight_layout()
-plt.savefig('所属別参加者数.png', dpi=150, bbox_inches='tight')
+plt.subplots_adjust(**MARGIN)
+plt.savefig('所属別参加者数.png', dpi=DPI)
 plt.close()
 
 # ===== 棒グラフを作成（所属ごとの平均・最高・最低スコア） =====
@@ -83,7 +95,7 @@ dept_avg = [sum(dept_scores[d]) / len(dept_scores[d]) for d in dept_names]
 dept_max = [max(dept_scores[d]) for d in dept_names]
 dept_min = [min(dept_scores[d]) for d in dept_names]
 
-fig2, ax2 = plt.subplots(figsize=(10, 6))
+fig2, ax2 = plt.subplots(figsize=FIGSIZE)
 x = range(len(dept_names))
 width = 0.5
 
@@ -91,33 +103,34 @@ width = 0.5
 bars = ax2.bar(x, dept_avg, width, label='平均スコア', color=PALETTE['primary'])
 
 # 最高点・最低点は点で表示
-ax2.scatter(x, dept_max, marker='^', s=80, color=PALETTE['accent'], zorder=5, label='最高点', edgecolors='#C25B45', linewidths=1.5)
-ax2.scatter(x, dept_min, marker='v', s=80, color=PALETTE['secondary'], zorder=5, label='最低点', edgecolors='#3A8F7A', linewidths=1.5)
+ax2.scatter(x, dept_max, marker='^', s=120, color=PALETTE['accent'], zorder=5, label='最高点', edgecolors='#C25B45', linewidths=1.5)
+ax2.scatter(x, dept_min, marker='v', s=120, color=PALETTE['secondary'], zorder=5, label='最低点', edgecolors='#3A8F7A', linewidths=1.5)
 
 # 数値を表示
 for i, (avg, mx, mn) in enumerate(zip(dept_avg, dept_max, dept_min)):
     # 平均点：棒グラフの下部に白色で表示
     ax2.annotate(f'{avg:.1f}', xy=(i, 10), xytext=(0, 0), textcoords='offset points',
-                 ha='center', va='center', fontsize=9, fontweight='bold', color='white',
-                 bbox=dict(boxstyle='round,pad=0.2', facecolor=PALETTE['primary'], edgecolor='none'))
+                 ha='center', va='center', fontsize=FONT['annot'], fontweight='bold', color='white',
+                 bbox=dict(boxstyle='round,pad=0.3', facecolor=PALETTE['primary'], edgecolor='none'))
     # 最高点：三角マーカーの真上に表示
-    ax2.annotate(f'{mx}', xy=(i, mx), xytext=(0, 8), textcoords='offset points',
-                 ha='center', va='bottom', fontsize=9, color='#C25B45')
+    ax2.annotate(f'{mx}', xy=(i, mx), xytext=(0, 10), textcoords='offset points',
+                 ha='center', va='bottom', fontsize=FONT['annot'], color='#C25B45')
     # 最低点：三角マーカーの真下に表示
-    ax2.annotate(f'{mn}', xy=(i, mn), xytext=(0, -8), textcoords='offset points',
-                 ha='center', va='top', fontsize=9, color='#2D6A7A')
+    ax2.annotate(f'{mn}', xy=(i, mn), xytext=(0, -10), textcoords='offset points',
+                 ha='center', va='top', fontsize=FONT['annot'], color='#2D6A7A')
 
-ax2.set_xlabel('所属', fontsize=12)
-ax2.set_ylabel('スコア', fontsize=12)
-ax2.set_title('所属別スコア', fontsize=14, fontweight='bold')
+ax2.set_xlabel('所属', fontsize=FONT['label'])
+ax2.set_ylabel('スコア', fontsize=FONT['label'])
+ax2.set_title('所属別スコア', fontsize=FONT['title'], fontweight='bold')
 ax2.set_xticks(x)
-ax2.set_xticklabels(dept_names)
-ax2.legend(loc='upper right')
+ax2.set_xticklabels(dept_names, fontsize=FONT['tick'])
+ax2.tick_params(axis='y', labelsize=FONT['tick'])
+ax2.legend(loc='upper right', fontsize=FONT['legend'])
 # 余白を追加して数値がはみ出さないように
 ax2.set_xlim(-0.7, len(dept_names) - 1 + 0.7)
 ax2.set_ylim(0, 118)
-plt.tight_layout(pad=1.5)
-plt.savefig('所属別スコア.png', dpi=150, bbox_inches='tight', pad_inches=0.3)
+plt.subplots_adjust(**MARGIN)
+plt.savefig('所属別スコア.png', dpi=DPI)
 plt.close()
 
 # ===== ヒストグラムを作成（全参加者のスコア分布） =====
@@ -125,20 +138,21 @@ all_scores = [int(row['スコア']) for row in rows]
 # ビン数：スコア範囲70-100、5点刻みで分布が把握しやすい
 bins = range(70, 101, 5)  # 70-74, 75-79, 80-84, 85-89, 90-94, 95-99, 100
 
-fig3, ax3 = plt.subplots(figsize=(10, 6))
+fig3, ax3 = plt.subplots(figsize=FIGSIZE)
 n, bins_out, patches = ax3.hist(all_scores, bins=bins, color=PALETTE['primary'], edgecolor='white', linewidth=1.2)
 
 # 平均スコアの基準線
 avg_all = sum(all_scores) / len(all_scores)
 ax3.axvline(x=avg_all, color=PALETTE['accent'], linestyle='--', linewidth=2, label=f'平均: {avg_all:.1f}点')
 
-ax3.set_title('スコア分布', fontsize=14, fontweight='bold')
-ax3.set_xlabel('スコア', fontsize=12)
-ax3.set_ylabel('人数', fontsize=12)
-ax3.legend(loc='upper right')
+ax3.set_title('スコア分布', fontsize=FONT['title'], fontweight='bold')
+ax3.set_xlabel('スコア', fontsize=FONT['label'])
+ax3.set_ylabel('人数', fontsize=FONT['label'])
+ax3.tick_params(axis='both', labelsize=FONT['tick'])
+ax3.legend(loc='upper right', fontsize=FONT['legend'])
 ax3.set_xlim(65, 105)
-plt.tight_layout()
-plt.savefig('スコア分布.png', dpi=150, bbox_inches='tight')
+plt.subplots_adjust(**MARGIN)
+plt.savefig('スコア分布.png', dpi=DPI)
 plt.close()
 
 # コンソールにも集計結果を表示
