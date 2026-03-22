@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>テスト結果集計</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f0f4f8;
+      --card: #ffffff;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent: #3b82f6;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+    }
+
+    .upload-area {
+      background: var(--card);
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 2.5rem;
+      text-align: center;
+      margin-bottom: 2rem;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .upload-area:hover,
+    .upload-area.dragover {
+      border-color: var(--primary);
+      background: rgba(37, 99, 235, 0.04);
+    }
+
+    .upload-area input[type="file"] {
+      display: none;
+    }
+
+    .upload-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+      opacity: 0.6;
+    }
+
+    .upload-text {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .upload-hint {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .results {
+      display: none;
+    }
+
+    .results.visible {
+      display: block;
+    }
+
+    .section {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--primary);
+      color: var(--text);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 0.6rem 0.75rem;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      font-weight: 600;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    td {
+      font-variant-numeric: tabular-nums;
+    }
+
+    tr:hover td {
+      background: rgba(37, 99, 235, 0.04);
+    }
+
+    .subject-tag {
+      font-size: 0.8rem;
+      color: var(--primary);
+      margin-left: 0.25rem;
+    }
+
+    .error {
+      background: #fef2f2;
+      color: #b91c1c;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .print-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .print-controls label {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .print-controls select {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.95rem;
+      min-width: 180px;
+    }
+
+    .print-btn {
+      padding: 0.5rem 1.25rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    .print-btn:hover {
+      background: var(--primary-hover);
+    }
+
+    .print-controls input[type="text"] {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.95rem;
+      width: 140px;
+    }
+
+    .print-btn.pdf-download {
+      background: #059669;
+    }
+
+    .print-btn.pdf-download:hover {
+      background: #047857;
+    }
+
+    .print-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    #printArea {
+      display: none;
+      padding: 1rem;
+    }
+
+    #pdfGenContainer {
+      position: fixed;
+      left: -9999px;
+      top: 0;
+      width: 800px;
+      padding: 1rem;
+      background: white;
+      font-family: 'Noto Sans JP', sans-serif;
+      color: var(--text);
+    }
+
+    #printArea .section {
+      margin-bottom: 1.5rem;
+    }
+
+    /* 印刷時は画面の操作UIを非表示、印刷用コンテンツのみ表示 */
+    @media print {
+      body { padding: 0; background: white; }
+      .upload-area, .subtitle, .error, .print-controls, #results,
+      .container > h1 { display: none !important; }
+      #printArea { display: block !important; }
+      .print-page-break { page-break-after: always; }
+      .print-page-break:last-child { page-break-after: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>スコア集計アプリ</h1>
+    <p class="subtitle">CSVファイルをアップロードすると、参加者ごと・科目ごとの統計が表示されます</p>
+
+    <div class="upload-area" id="uploadArea">
+      <input type="file" id="fileInput" accept=".csv" />
+      <div class="upload-icon">📄</div>
+      <div class="upload-text">CSVファイルをドラッグ＆ドロップ、またはクリックして選択</div>
+      <div class="upload-hint">必要な列：名前、日付、科目、スコア</div>
+    </div>
+
+    <div id="errorMessage" class="error" style="display: none;"></div>
+
+    <div id="printArea"></div>
+    <div id="pdfGenContainer"></div>
+
+    <div class="results" id="results">
+      <div class="print-controls">
+        <label for="pdfTitle">PDFタイトル：</label>
+        <input type="text" id="pdfTitle" placeholder="例: スコアレポート" value="スコアレポート" />
+        <span style="color: var(--text-muted); font-size: 0.9rem;">→ ファイル名: タイトル_名前.pdf</span>
+      </div>
+      <div class="print-controls">
+        <label for="printParticipant">印刷する参加者：</label>
+        <select id="printParticipant"></select>
+        <button class="print-btn" id="printBtn">PDFで印刷</button>
+        <button class="print-btn pdf-download" id="downloadAllPdfBtn">すべてPDFで一括ダウンロード</button>
+      </div>
+      <div class="section">
+        <div class="section-title">【参加者ごとのスコア】</div>
+        <table id="participantTable">
+          <thead>
+            <tr>
+              <th>参加者</th>
+              <th>平均</th>
+              <th>最高点</th>
+              <th>最低点</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <div class="section-title">【科目ごとのスコア】</div>
+        <table id="subjectTable">
+          <thead>
+            <tr>
+              <th>科目</th>
+              <th>平均</th>
+              <th>最高点</th>
+              <th>最低点</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script>
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const results = document.getElementById('results');
+    const errorMessage = document.getElementById('errorMessage');
+    const participantTbody = document.querySelector('#participantTable tbody');
+    const subjectTbody = document.querySelector('#subjectTable tbody');
+    const printParticipantSelect = document.getElementById('printParticipant');
+    const printBtn = document.getElementById('printBtn');
+    const printArea = document.getElementById('printArea');
+    const pdfTitleInput = document.getElementById('pdfTitle');
+    const downloadAllPdfBtn = document.getElementById('downloadAllPdfBtn');
+    const pdfGenContainer = document.getElementById('pdfGenContainer');
+
+    let cachedParticipantScores = {};
+    let cachedSubjectScores = {};
+    let cachedParticipantNames = [];
+
+    uploadArea.addEventListener('click', () => fileInput.click());
+
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file && file.name.endsWith('.csv')) {
+        processFile(file);
+      } else {
+        showError('CSVファイルを選択してください');
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) processFile(file);
+    });
+
+    function showError(msg) {
+      errorMessage.textContent = msg;
+      errorMessage.style.display = 'block';
+      results.classList.remove('visible');
+    }
+
+    function hideError() {
+      errorMessage.style.display = 'none';
+    }
+
+    function parseCSV(text) {
+      const lines = text.trim().split(/\r?\n/);
+      if (lines.length < 2) return null;
+      const headers = lines[0].split(',').map(h => h.trim());
+      const rows = [];
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim());
+        const row = {};
+        headers.forEach((h, j) => row[h] = values[j] || '');
+        rows.push(row);
+      }
+      return { headers, rows };
+    }
+
+    function processFile(file) {
+      hideError();
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const text = e.target.result;
+          const parsed = parseCSV(text);
+          if (!parsed || parsed.rows.length === 0) {
+            showError('有効なデータが含まれていません');
+            return;
+          }
+          const { rows } = parsed;
+          const required = ['名前', '科目', 'スコア'];
+          const firstRow = rows[0];
+          for (const col of required) {
+            if (!(col in firstRow)) {
+              showError(`必要な列「${col}」がありません。ヘッダーに「名前」「日付」「科目」「スコア」を含めてください。`);
+              return;
+            }
+          }
+          displayResults(rows);
+        } catch (err) {
+          showError('ファイルの読み込みに失敗しました: ' + err.message);
+        }
+      };
+      reader.readAsText(file, 'UTF-8');
+    }
+
+    function displayResults(rows) {
+      const participantScores = {};
+      const subjectScores = {};
+
+      for (const row of rows) {
+        const name = row['名前'];
+        const subject = row['科目'];
+        const scoreStr = row['スコア'];
+        const score = parseInt(scoreStr, 10);
+        if (isNaN(score)) continue;
+
+        if (!participantScores[name]) participantScores[name] = [];
+        participantScores[name].push([score, subject]);
+
+        if (!subjectScores[subject]) subjectScores[subject] = [];
+        subjectScores[subject].push(score);
+      }
+
+      participantTbody.innerHTML = '';
+      for (const name of Object.keys(participantScores).sort()) {
+        const records = participantScores[name];
+        const scores = records.map(r => r[0]);
+        const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+        const maxR = records.reduce((a, b) => a[0] >= b[0] ? a : b);
+        const minR = records.reduce((a, b) => a[0] <= b[0] ? a : b);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${name}</td>
+          <td>${avg.toFixed(2)}</td>
+          <td>${maxR[0]}<span class="subject-tag">(${maxR[1]})</span></td>
+          <td>${minR[0]}<span class="subject-tag">(${minR[1]})</span></td>
+        `;
+        participantTbody.appendChild(tr);
+      }
+
+      subjectTbody.innerHTML = '';
+      for (const subject of Object.keys(subjectScores).sort()) {
+        const scores = subjectScores[subject];
+        const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+        const maxScore = Math.max(...scores);
+        const minScore = Math.min(...scores);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${subject}</td>
+          <td>${avg.toFixed(2)}</td>
+          <td>${maxScore}</td>
+          <td>${minScore}</td>
+        `;
+        subjectTbody.appendChild(tr);
+      }
+
+      cachedParticipantScores = participantScores;
+      cachedSubjectScores = subjectScores;
+      cachedParticipantNames = Object.keys(participantScores).sort();
+
+      printParticipantSelect.innerHTML = '';
+      const optAll = document.createElement('option');
+      optAll.value = '__all__';
+      optAll.textContent = '全員分を印刷（1人1ページ）';
+      printParticipantSelect.appendChild(optAll);
+      for (const name of cachedParticipantNames) {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        printParticipantSelect.appendChild(opt);
+      }
+
+      results.classList.add('visible');
+    }
+
+    function buildSubjectTableHtml() {
+      let html = '<table><thead><tr><th>科目</th><th>平均</th><th>最高点</th><th>最低点</th></tr></thead><tbody>';
+      for (const subject of Object.keys(cachedSubjectScores).sort()) {
+        const scores = cachedSubjectScores[subject];
+        const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+        const maxScore = Math.max(...scores);
+        const minScore = Math.min(...scores);
+        html += `<tr><td>${subject}</td><td>${avg.toFixed(2)}</td><td>${maxScore}</td><td>${minScore}</td></tr>`;
+      }
+      html += '</tbody></table>';
+      return html;
+    }
+
+    function buildParticipantRowHtml(name) {
+      const records = cachedParticipantScores[name];
+      if (!records || records.length === 0) return '';
+      const scores = records.map(r => r[0]);
+      const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+      const maxR = records.reduce((a, b) => a[0] >= b[0] ? a : b);
+      const minR = records.reduce((a, b) => a[0] <= b[0] ? a : b);
+      return `<tr><td>${name}</td><td>${avg.toFixed(2)}</td><td>${maxR[0]}<span class="subject-tag">(${maxR[1]})</span></td><td>${minR[0]}<span class="subject-tag">(${minR[1]})</span></td></tr>`;
+    }
+
+    function doPrint() {
+      const selected = printParticipantSelect.value;
+      const subjectTableHtml = buildSubjectTableHtml();
+      let html = '';
+
+      if (selected === '__all__') {
+        for (let i = 0; i < cachedParticipantNames.length; i++) {
+          const name = cachedParticipantNames[i];
+          const isLast = i === cachedParticipantNames.length - 1;
+          html += `
+            <div class="${isLast ? '' : 'print-page-break'}">
+              <div class="section">
+                <div class="section-title">【${name}さんのスコア】</div>
+                <table><thead><tr><th>参加者</th><th>平均</th><th>最高点</th><th>最低点</th></tr></thead><tbody>${buildParticipantRowHtml(name)}</tbody></table>
+              </div>
+              <div class="section">
+                <div class="section-title">【科目ごとのスコア】</div>
+                ${subjectTableHtml}
+              </div>
+            </div>
+          `;
+        }
+      } else {
+        html = `
+          <div class="section">
+            <div class="section-title">【${selected}さんのスコア】</div>
+            <table><thead><tr><th>参加者</th><th>平均</th><th>最高点</th><th>最低点</th></tr></thead><tbody>${buildParticipantRowHtml(selected)}</tbody></table>
+          </div>
+          <div class="section">
+            <div class="section-title">【科目ごとのスコア】</div>
+            ${subjectTableHtml}
+          </div>
+        `;
+      }
+
+      printArea.innerHTML = html;
+      window.print();
+    }
+
+    function sanitizeFilename(str) {
+      return str.replace(/[/\\:*?"<>|]/g, '_').trim() || 'file';
+    }
+
+    function buildPdfContentForParticipant(name) {
+      const subjectTableHtml = buildSubjectTableHtml();
+      return `
+        <div class="section">
+          <div class="section-title">【${name}さんのスコア】</div>
+          <table><thead><tr><th>参加者</th><th>平均</th><th>最高点</th><th>最低点</th></tr></thead><tbody>${buildParticipantRowHtml(name)}</tbody></table>
+        </div>
+        <div class="section">
+          <div class="section-title">【科目ごとのスコア】</div>
+          ${subjectTableHtml}
+        </div>
+      `;
+    }
+
+    async function downloadAllPdf() {
+      const title = pdfTitleInput.value.trim() || 'スコアレポート';
+      const baseName = sanitizeFilename(title);
+      downloadAllPdfBtn.disabled = true;
+      downloadAllPdfBtn.textContent = '生成中...';
+
+      for (let i = 0; i < cachedParticipantNames.length; i++) {
+        const name = cachedParticipantNames[i];
+        const fileName = `${baseName}_${sanitizeFilename(name)}.pdf`;
+        const content = buildPdfContentForParticipant(name);
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'section';
+        wrapper.style.background = 'white';
+        wrapper.style.padding = '1rem';
+        wrapper.innerHTML = content;
+        pdfGenContainer.innerHTML = '';
+        pdfGenContainer.appendChild(wrapper);
+
+        const opt = {
+          margin: 10,
+          filename: fileName,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        await html2pdf().set(opt).from(wrapper).save();
+        if (i < cachedParticipantNames.length - 1) {
+          await new Promise(r => setTimeout(r, 300));
+        }
+      }
+
+      pdfGenContainer.innerHTML = '';
+      downloadAllPdfBtn.disabled = false;
+      downloadAllPdfBtn.textContent = 'すべてPDFで一括ダウンロード';
+    }
+
+    printBtn.addEventListener('click', doPrint);
+    downloadAllPdfBtn.addEventListener('click', () => {
+      if (cachedParticipantNames.length === 0) return;
+      downloadAllPdf();
+    });
+  </script>
+</body>
+</html>
