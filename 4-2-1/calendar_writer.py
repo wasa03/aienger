@@ -11,6 +11,7 @@ Google Calendar にサービスアカウントで予定を追加するサンプ�
      サービスアカウントのメールアドレスを追加（「予定の変更」権限）
 """
 
+import os
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
@@ -18,7 +19,10 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 # ---- 設定 ----
-SERVICE_ACCOUNT_FILE = "level-racer-495902-u8-c2342607c89b.json"   # サービスアカウントの JSON キーファイル
+# サービスアカウントの JSON キーファイル（リポジトリ直下の _json/ に配置。Git 管理外）
+SERVICE_ACCOUNT_FILE = os.path.join(
+    os.path.dirname(__file__), "..", "_json", "level-racer-495902-u8-c2342607c89b.json"
+)
 CALENDAR_ID = "f7a07515dd144543d403753617eda5f9f2283014066e25a25d18786505721d88@group.calendar.google.com"                # カレンダー ID（共有カレンダーは xxx@group.calendar.google.com）
 TIMEZONE = "Asia/Tokyo"
 

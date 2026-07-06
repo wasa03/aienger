@@ -10,11 +10,16 @@ Google Sheets にサービスアカウントでデータを書き込むサンプ
   3. 対象スプレッドシートをサービスアカウントのメールアドレスに共有（編集者権限）
 """
 
+import os
+
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 # ---- 設定 ----
-SERVICE_ACCOUNT_FILE = "level-racer-495902-u8-c2342607c89b.json"   # サービスアカウントの JSON キーファイル
+# サービスアカウントの JSON キーファイル（リポジトリ直下の _json/ に配置。Git 管理外）
+SERVICE_ACCOUNT_FILE = os.path.join(
+    os.path.dirname(__file__), "..", "_json", "level-racer-495902-u8-c2342607c89b.json"
+)
 SPREADSHEET_ID = "1x_pcbcC_4i9HaPzLdydQLYJAJ0uOAjpFsfnefcix5iQ"          # URL の /d/<ここ>/edit
 SHEET_NAME = "Sheet1"                            # タブ名
 
