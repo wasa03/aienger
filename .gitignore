@@ -1,0 +1,6 @@
+_json/
+4-3-2_1_作業/
+
+# Google Cloud サービスアカウント認証情報（Git に含めない）
+4-2-1/level-racer-495902-u8-c2342607c89b.json
+*-service-account*.json
