@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>業務効率化ツール</h1>
+  <p class="lead">左のメニューから使いたいツールを選んでください。</p>
+  {% for t in tools %}
+    <a class="card" href="{{ url_for(t.endpoint) }}"
+       style="display:block; text-decoration:none; color:inherit;">
+      <strong>{{ t.icon }} {{ t.name }}</strong>
+    </a>
+  {% endfor %}
+{% endblock %}

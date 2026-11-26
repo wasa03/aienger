@@ -1,0 +1,14 @@
+# 秘密情報(絶対にアップしない)
+.env
+.env.*
+!.env.example
+token*.json
+credentials*.json
+
+# 自動生成されるもの
+.venv/
+__pycache__/
+.DS_Store
+
+# Claude 用のローカル設定
+.claude/

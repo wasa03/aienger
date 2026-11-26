@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Zoom会議を作る｜業務効率化ツール{% endblock %}
+{% block content %}
+  <h1>🎥 Zoom会議を作る</h1>
+  <p class="lead">入力して「会議を作成」を押すと、下に会議ID・パスワード・参加リンクが表示されます。</p>
+
+  <form class="card" method="post" data-busy="作成中…">
+    <div class="field">
+      <label for="topic">会議名</label>
+      <input id="topic" name="topic" value="{{ form.topic }}" placeholder="例：定例会議" autofocus>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="start">開始日時</label>
+        <input id="start" name="start" type="datetime-local" value="{{ form.start }}" required>
+      </div>
+      <div class="field">
+        <label for="duration">時間（分）</label>
+        <input id="duration" name="duration" type="number" min="5" step="5" value="{{ form.duration }}" required>
+      </div>
+    </div>
+    <button type="submit">会議を作成</button>
+  </form>
+
+  {% if error %}
+    <div class="card error"><strong>作成できませんでした</strong><br>{{ error }}</div>
+  {% endif %}
+
+  {% if result %}
+    <div class="card result">
+      <h2>✅ 会議を作成しました</h2>
+      <div class="item"><span class="k">会議名</span><span class="v">{{ result.topic }}</span></div>
+      <div class="item"><span class="k">日時</span><span class="v">{{ result.start }}（{{ result.duration }}分）</span></div>
+      <div class="item">
+        <span class="k">会議ID</span><span class="v">{{ result.id_display }}</span>
+        <button class="copy" data-copy="{{ result.id }}">コピー</button>
+      </div>
+      <div class="item">
+        <span class="k">パスワード</span><span class="v">{{ result.password }}</span>
+        <button class="copy" data-copy="{{ result.password }}">コピー</button>
+      </div>
+      <div class="item">
+        <span class="k">参加リンク</span>
+        <span class="v"><a href="{{ result.join_url }}" target="_blank" rel="noopener">{{ result.join_url }}</a></span>
+        <button class="copy" data-copy="{{ result.join_url }}">コピー</button>
+      </div>
+      <button class="copy copy-all" data-copy="【{{ result.topic }}】
+日時：{{ result.start }}（{{ result.duration }}分）
+参加リンク：{{ result.join_url }}
+会議ID：{{ result.id_display }}
+パスワード：{{ result.password }}">案内文をまとめてコピー</button>
+    </div>
+  {% endif %}
+{% endblock %}

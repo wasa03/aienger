@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}SIRCARS定例｜業務効率化ツール{% endblock %}
+{% block head %}
+<style>
+  .settings { color: var(--muted); font-size: 13px; margin: 0; padding-left: 18px; }
+  .settings li { margin: 2px 0; }
+  pre.msg {
+    white-space: pre-wrap; word-break: break-all; margin: 0;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+    padding: 14px; font-family: inherit; font-size: 14px;
+  }
+  .confirm { border-color: var(--accent); }
+  .confirm h2 { font-size: 16px; margin: 0 0 6px; }
+  .actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .secondary { background: var(--panel); color: var(--text); border: 1px solid var(--line); }
+  .warn { color: var(--err); font-size: 13px; }
+</style>
+{% endblock %}
+{% block content %}
+  <h1>📅 SIRCARS定例</h1>
+  <p class="lead">次回の日時を入れると、Meet付きの予定作成・招待メール送信・ChatWorkへの投稿をまとめて行います。</p>
+
+  {% if not result %}
+  <form class="card" method="post" data-busy="確認中…">
+    <input type="hidden" name="action" value="preview">
+    <div class="field">
+      <label for="start">次回の日時</label>
+      <input id="start" name="start" type="datetime-local" value="{{ start }}" required>
+    </div>
+    {% if settings %}
+      <ul class="settings">
+        <li>予定名：{{ settings.title }}（{{ settings.duration }}分）</li>
+        <li>招待：{{ settings.invitees|join("、") }}</li>
+        <li>ChatWorkメンション：{{ settings.mentions|join("、") }}</li>
+      </ul>
+      <p class="hint">メンバーや文面を変えるときは、SIRCARS-regular-mtg フォルダの config.py を編集してください。</p>
+    {% endif %}
+    <button type="submit">確認する</button>
+  </form>
+  {% endif %}
+
+  {% if error %}
+    <div class="card error"><strong>うまくいきませんでした</strong><br>{{ error }}</div>
+  {% endif %}
+
+  {% if preview %}
+    <form class="card confirm" method="post" data-busy="実行中…（少し時間がかかります）">
+      <h2>この内容で実行しますか？</h2>
+      <p class="warn">実行すると、招待メールとChatWorkのメッセージが送信されます（取り消せません）。</p>
+      <div class="item"><span class="k">日時</span><span class="v">{{ preview.label }}</span></div>
+      <div class="item"><span class="k">招待</span><span class="v">{{ settings.invitees|join("、") }}</span></div>
+      <p class="hint">ChatWorkに送る内容：</p>
+      <pre class="msg">{{ preview.message }}</pre>
+      <input type="hidden" name="start" value="{{ start }}">
+      <div class="actions">
+        <button type="submit" name="action" value="run">実行する</button>
+        <a href="{{ url_for('sircars') }}"><button type="button" class="secondary">やめる</button></a>
+      </div>
+    </form>
+  {% endif %}
+
+  {% if result %}
+    <div class="card result">
+      <h2>✅ 次回定例を登録しました</h2>
+      <div class="item"><span class="k">日時</span><span class="v">{{ result.label }}</span></div>
+      <div class="item">
+        <span class="k">Meetリンク</span>
+        <span class="v"><a href="{{ result.meet_url }}" target="_blank" rel="noopener">{{ result.meet_url }}</a></span>
+        <button class="copy" data-copy="{{ result.meet_url }}">コピー</button>
+      </div>
+      <div class="item"><span class="k">カレンダー</span><span class="v"><a href="{{ result.event_url }}" target="_blank" rel="noopener">予定を開く</a>（招待メール送信済み）</span></div>
+      <div class="item">
+        <span class="k">ChatWork</span>
+        <span class="v">{% if result.chatwork_ok %}投稿しました{% else %}<span class="warn">投稿できませんでした：{{ result.chatwork_error }}</span>{% endif %}</span>
+      </div>
+      {% if not result.chatwork_ok %}
+        <p class="hint">下の文面をコピーして、ChatWorkに手動で貼り付けてください。</p>
+        <pre class="msg">{{ result.message }}</pre>
+        <button class="copy copy-all" data-copy="{{ result.message }}">文面をコピー</button>
+      {% endif %}
+    </div>
+    <p><a href="{{ url_for('sircars') }}">← 最初の画面に戻る</a></p>
+  {% endif %}
+{% endblock %}

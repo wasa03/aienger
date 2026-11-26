@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Google Meetを作る｜業務効率化ツール{% endblock %}
+{% block content %}
+  <h1>📹 Google Meetを作る</h1>
+  <p class="lead">入力して「会議を作成」を押すと、Googleカレンダーに予定が入り、下にMeetのリンクが表示されます。</p>
+
+  <form class="card" method="post" data-busy="作成中…">
+    <div class="field">
+      <label for="topic">会議名</label>
+      <input id="topic" name="topic" value="{{ form.topic }}" placeholder="例：定例会議" autofocus>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="start">開始日時</label>
+        <input id="start" name="start" type="datetime-local" value="{{ form.start }}" required>
+      </div>
+      <div class="field">
+        <label for="duration">時間（分）</label>
+        <input id="duration" name="duration" type="number" min="5" step="5" value="{{ form.duration }}" required>
+      </div>
+    </div>
+    <button type="submit">会議を作成</button>
+    <p class="hint">招待メールは送りません。参加者にはリンクを共有してください。</p>
+  </form>
+
+  {% if error %}
+    <div class="card error"><strong>作成できませんでした</strong><br>{{ error }}</div>
+  {% endif %}
+
+  {% if result %}
+    <div class="card result">
+      <h2>✅ 会議を作成しました</h2>
+      <div class="item"><span class="k">会議名</span><span class="v">{{ result.summary }}</span></div>
+      <div class="item"><span class="k">日時</span><span class="v">{{ result.start }}（{{ result.duration }}分）</span></div>
+      <div class="item">
+        <span class="k">参加リンク</span>
+        <span class="v"><a href="{{ result.meet_url }}" target="_blank" rel="noopener">{{ result.meet_url }}</a></span>
+        <button class="copy" data-copy="{{ result.meet_url }}">コピー</button>
+      </div>
+      <div class="item">
+        <span class="k">会議コード</span><span class="v">{{ result.meeting_code }}</span>
+        <button class="copy" data-copy="{{ result.meeting_code }}">コピー</button>
+      </div>
+      <div class="item">
+        <span class="k">カレンダー</span>
+        <span class="v"><a href="{{ result.event_url }}" target="_blank" rel="noopener">予定を開く</a></span>
+      </div>
+      <button class="copy copy-all" data-copy="【{{ result.summary }}】
+日時：{{ result.start }}（{{ result.duration }}分）
+参加リンク：{{ result.meet_url }}">案内文をまとめてコピー</button>
+    </div>
+  {% endif %}
+{% endblock %}
