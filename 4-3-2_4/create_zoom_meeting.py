@@ -10,7 +10,8 @@
   4. 認証情報を以下のいずれかで渡す。
      (a) 環境変数
            ZOOM_ACCOUNT_ID / ZOOM_CLIENT_ID / ZOOM_CLIENT_SECRET
-     (b) リポジトリ直下の `_json/zoom_credentials.json` (.gitignore 済み)
+     (b) リポジトリ外の JSON ファイル (既定: ~/.zoom/credentials.json。
+         環境変数 ZOOM_CREDENTIALS_FILE で場所を変更可)
            {
              "account_id": "xxxx",
              "client_id": "xxxx",
@@ -37,8 +38,10 @@ from zoneinfo import ZoneInfo
 
 import requests
 
-BASE_DIR = Path(__file__).resolve().parent
-CREDENTIALS_FILE = BASE_DIR.parent / "_json" / "zoom_credentials.json"
+# 認証情報はリポジトリに置かず、ホームディレクトリ等のリポジトリ外に置く
+CREDENTIALS_FILE = Path(
+    os.environ.get("ZOOM_CREDENTIALS_FILE", Path.home() / ".zoom" / "credentials.json")
+).expanduser()
 
 TOKEN_URL = "https://zoom.us/oauth/token"
 API_BASE_URL = "https://api.zoom.us/v2"
