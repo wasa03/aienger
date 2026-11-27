@@ -1,0 +1,8 @@
+# 秘密情報(絶対にアップしない)
+token*.json
+credentials*.json
+
+# 自動生成されるもの
+.venv/
+__pycache__/
+.DS_Store
